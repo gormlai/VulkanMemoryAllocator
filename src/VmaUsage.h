@@ -40,7 +40,7 @@
 
 #else  // #ifdef _WIN32
 
-#include <vulkan/vulkan.h>
+#include <volk.h>
 
 #endif  // #ifdef _WIN32
 
