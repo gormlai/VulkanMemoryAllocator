@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017-2022 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2017-2024 Advanced Micro Devices, Inc. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -35,8 +35,8 @@ static const char* const SHADER_PATH1 = "./";
 static const char* const SHADER_PATH2 = "../bin/";
 static const wchar_t* const WINDOW_CLASS_NAME = L"VULKAN_MEMORY_ALLOCATOR_SAMPLE";
 static const char* const VALIDATION_LAYER_NAME = "VK_LAYER_KHRONOS_validation";
-static const char* const APP_TITLE_A =     "Vulkan Memory Allocator Sample 3.0.1";
-static const wchar_t* const APP_TITLE_W = L"Vulkan Memory Allocator Sample 3.0.1";
+static const char* const APP_TITLE_A =     "Vulkan Memory Allocator Sample 3.1.0";
+static const wchar_t* const APP_TITLE_W = L"Vulkan Memory Allocator Sample 3.1.0";
 
 static const bool VSYNC = true;
 static const uint32_t COMMAND_BUFFER_COUNT = 2;
@@ -67,6 +67,7 @@ bool VK_AMD_device_coherent_memory_enabled = false;
 bool VK_KHR_buffer_device_address_enabled = false;
 bool VK_EXT_memory_priority_enabled = false;
 bool VK_EXT_debug_utils_enabled = false;
+bool VK_KHR_maintenance5_enabled = false;
 bool g_SparseBindingEnabled = false;
 
 // # Pointers to functions from extensions
@@ -767,7 +768,7 @@ static void CreateTexture(uint32_t sizeX, uint32_t sizeY)
     for(uint32_t y = 0; y < sizeY; ++y)
     {
         uint32_t* pPixelData = (uint32_t*)pRowData;
-        for(uint32_t x = 0; x < sizeY; ++x)
+        for(uint32_t x = 0; x < sizeX; ++x)
         {
             *pPixelData =
                 ((x & 0x18) == 0x08 ? 0x000000FF : 0x00000000) |
@@ -1396,7 +1397,8 @@ static void PrintEnabledFeatures()
     {
         wprintf(L"bufferDeviceAddress: %d\n", VK_KHR_buffer_device_address_enabled ? 1 : 0);
     }
-    wprintf(L"VK_EXT_memory_priority: %d\n", VK_EXT_memory_priority ? 1 : 0);
+    wprintf(L"VK_EXT_memory_priority: %d\n", VK_EXT_memory_priority_enabled ? 1 : 0);
+    wprintf(L"VK_KHR_maintenance5: %d\n", VK_KHR_maintenance5_enabled? 1 : 0);
 }
 
 void SetAllocatorCreateInfo(VmaAllocatorCreateInfo& outInfo)
@@ -1437,6 +1439,10 @@ void SetAllocatorCreateInfo(VmaAllocatorCreateInfo& outInfo)
         outInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT;
     }
 #endif
+    if(VK_KHR_maintenance5_enabled)
+    {
+        outInfo.flags |= VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE5_BIT;
+    }
 
     if(USE_CUSTOM_CPU_ALLOCATION_CALLBACKS)
     {
@@ -1836,6 +1842,8 @@ static void InitializeApplication()
         }
         else if(strcmp(physicalDeviceExtensionProperties[i].extensionName, VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME) == 0)
             VK_EXT_memory_priority_enabled = true;
+        else if(strcmp(physicalDeviceExtensionProperties[i].extensionName, VK_KHR_MAINTENANCE_5_EXTENSION_NAME) == 0)
+            VK_KHR_maintenance5_enabled = true;
     }
 
     if(GetVulkanApiVersion() >= VK_API_VERSION_1_2)
@@ -1994,6 +2002,8 @@ static void InitializeApplication()
         enabledDeviceExtensions.push_back(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
     if(VK_EXT_memory_priority_enabled)
         enabledDeviceExtensions.push_back(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
+    if(VK_KHR_maintenance5_enabled)
+        enabledDeviceExtensions.push_back(VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
 
     VkPhysicalDeviceFeatures2 deviceFeatures = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
     deviceFeatures.features.samplerAnisotropy = VK_TRUE;
